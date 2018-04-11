@@ -199,9 +199,109 @@ A natural deduction derivation of the judgement $e ⊢ A$ is written in Coq as `
 
 __________
 
-### Questions
+### *Questions*
 
 ## 1. In the language and the derivation rules, we omitted the connectors $⊤$ (`Ftrue`), the negation (`Fnot`), and the equivalence (`Fequiv`). Define them, and prove that the associated introduction and elimination rules are admissible.
 
 
-## 2. Define an operator `nFforall` which iterates the operator `Fforall`. For instance, the formula `nFforall 2 A` should be tantamount to `Fforall (Fforall A)`. 
+## 2. Define an operator `nFforall` which iterates the operator `Fforall`. For instance, the formula `nFforall 2 A` should be tantamount to `Fforall (Fforall A)`. Prove the following lemma:
+
+```coq
+Lemma nFforall_1 : forall n x t A,
+fsubst x t (nFforall n A) = nFforall n (fsubst (n + x) t A).
+```
+
+__________
+
+## 2.4. Notations
+
+For the sake of readability, notations were introduced in the base file to redefine many standard Coq notations, but in a different *scope*. As it happens, already existing notations have classic interpretations (at the *meta* level), but newly introduced interprétations (at the *object* language level) can be used with the notation `(...)%pa`. For example, `A \/ B` represents the *meta* conjunction, and `(A \/ B)%` the *object* one (i.e. the formula `Fand A B`).
+
+## 2.5. Theory
+
+Peano axioms are written in the base file thanks the `Ax` predicate: the proposition `Ax P` means that `P` is a Peano axiom. Pay heed to how `Ax` is defined. This very definition enables us to in Coq the notion of `theorem`:
+
+```coq
+Definition Th T := exists axioms,
+  (forall A, In A axioms -> Ax A) /\ ND axioms T.
+```
+
+_________
+
+### *Questions*
+
+## 1. Prove the following formula in $HA_1$:
+
+$$∀n \quad n ≠ s(n)$$
+
+**NB**: The proof is required to be made at the *object* level: you have to express this formula as a Coq term `A` of type `formula`, and then prove `Th A`
+
+
+_________
+
+
+# 3. Semantics
+
+The proof of the coherence of $HA_1$ proposed here relies on constructing a model of Coq type `nat`.
+
+## 3.1.
+
+A valuation of variables is represented by a list `b` of values (which are `nat` here): the $i$-th variable is interpreted by the $i$-th element of the list (denoted by `nth i b 0`). In the base file, the following functions are defined:
+
+```coq
+tinterp : list nat -> term -> nat
+finterp : list nat -> formula -> Prop
+```
+
+These give an interpretation of *object* terms and formulas as Coq integers and propositions.
+
+An object formula (of type `formula`) is said to be valid if its interpretation is provable in Coq.
+
+_________
+
+### *Questions*
+
+## 1. Prove the following lemmas:
+
+```coq
+Lemma tinterp_1 : forall t' t b1 b2,
+tinterp (b1 ++ b2) (tsubst (length b1) t' t) =
+tinterp (b1 ++ (tinterp b2 t') :: b2) t.
+Lemma tinterp_2 : forall t j, cterm j t ->
+forall b1 b2, j <= length b1 -> j <= length b2 ->
+(forall i, i < j -> nth i b1 0 = nth i b2 0) ->
+tinterp b1 t = tinterp b2 t.
+Lemma tinterp_3 : forall t b0 b1 b2,
+tinterp (b0++b2) t =
+tinterp (b0++b1++b2) (tlift (length b1) t (length b0)).
+```
+
+## 2. Prove the analogous lemmas for formulas.
+
+
+_________
+
+## 3.2. Correctness of the model
+
+_________
+
+### *Questions*
+
+## 1. Prove that the natural deduction rules are correct with respect to the interpretation of formulas:
+
+```coq
+Lemma ND_soundness : forall e A, ND e A ->
+    forall b, (forall B, In B e -> finterp b B) -> finterp b A.
+```
+
+## 2. Prove that all Peano axioms are valid
+
+```coq
+Lemma Ax_soundness : forall A, Ax A -> forall b, finterp b A.
+```
+
+## 3. Conclude by showing that `Ffalse` is not a theorem:
+
+```coq
+Theorem coherence : ~Th Ffalse.
+```
