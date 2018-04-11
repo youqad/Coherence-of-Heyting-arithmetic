@@ -1,7 +1,6 @@
 ---
 title: "[Final Coq Project] Coherence of Heyting's arithmetic"
 date: 2018-04-10
-documentclass: article
 tags:
   - DM
   - assignment
@@ -51,8 +50,158 @@ nat_compare : nat -> nat -> comparison
 nat_compare_spec : forall x y, CompSpec eq lt x y (nat_compare x y)
 ```
 
-The type of `le_lt_dec` enables us to directly use it to construct a term with the `if ... then ... else` statement. In a goal where there is a subterm of the form
+The type of `le_lt_dec` enables us to directly use it to construct a term with the `if ... then ... else` statement. For a goal where there is a subterm of the form
 
 ```coq
 if le_lt_dec x y then ... else ...
 ```
+
+a case analysis can be done by using
+
+```coq
+destruct (le_lt_dec x y)
+```
+
+this generates two subgoals: the first one corresponding to the `x <= y` case, and the second one to `y < x`.
+
+The `nat_compare` function is little bit more general: it returns an object of type `comparison`, different in the three possible cases. For a goal where there is a subterm of the form
+
+```coq
+match nat_compare x y with ...
+```
+
+a case analysis can be done by using the tactic
+
+```coq
+destruct (nat_compare_spec x y)
+```
+
+which generates three subgoals, corresponding to the three possible cases: `x=y`, `x<y`, and `x>y`
+
+It is also possible to use
+
+```coq
+case_eq (nat_compare x y)
+```
+
+and then specific lemmas for each case (which can be found with the command `SearchAbout`). A `case nat_compare` can also be useful.
+
+### Axiomatization
+
+Certain fragments of arithmetic can be decidable, and there exist some tactics to solve them. The proofs in this project resort to one of these fragments: *Presburger arithmetic*.
+
+Presburger arithmetic roughly corresponds to Peano first order arithmetic where there is nothing but addition. In Coq, the `omega` tactic solves a significant part thereof. In particular, all the goals involving only additions and comparisons can be directly proved. As a matter of fact, this tactic makes use of the associativity and commutativity of addition, of the transitivity of inequalities, and of existing compatibilities between the addition and inequalities.
+
+## 1.2 Other convenient tactics
+
+For more details, refer to the Coq reference manual.
+
+- In this project, automatic tactics such as `auto` and `intuition` are allowed
+
+- The `f_equal` tactic can help proving equalities of the form `f x ... = f x' ...` by proving equalities between arguments: `x=x'`, and so on...
+
+- The `simpl` tactic simply expands the definitions and compute.
+
+- It can happen that one wishes to convert a subterm into another one which is definitionally equal. This can be done with the `change` tactic.
+
+- The `replace` tactic replaces a subterm by another, provided that both are provably equal.
+
+- The `set` and `pose` tactics give names to subterms (by setting local definitions). They come in handy when it comes to clarifying a goal, or simplifying the names of the arguments of certain tactics.
+
+- Lemmas dealing with logical equivalences are conveniently usable with the `apply` tactic. For instance, if you have a lemma `foe: A <--> B`, then `apply <- foe` or `apply -> foe` applies a direction of the equivalence. It is also possible to use `rewrite`(as well as for the equality) after loading the `Setoid` library.
+
+- There exists an `admit` tactic to admit a subgoal without proving it. For obvious reasons, using this tactic is not recommended, but it can still prove convenient when it comes to focusing on specific parts of a proof. It goes without saying that the final mark with highly depend on the number of `Axiom` (and `Parameter`), `admit` and `Admitted` remaining in the code.
+
+- The `Print Assumption` command identifies all the axioms used in the proof of a proposition.
+
+## 1.3. Methodology
+
+All the expected definitions and lemmas are explicitely asked and mentioned in the questions of this problem statement. It is not necessary to prove everything in order: a lemma can be proven with the purpose of proving another subsequent one. However, the order of the statements has to be respected.
+
+It is of course allowed to introduce new intermediate lemmas other than the ones stated in this problem statement (but at least these stated lemmas have to be proven).
+
+# 2. Syntax
+
+In this section, one defines the *object language* to study, i.e. the notions of *terms*, *formulas*, and *derivation* (and hence theorem) of $HA_1$. These definitions can be exppressed in Coq, which acts as a *meta language* in which the properties of the studied logical system are to be expressed and proven.
+
+## 2.1. Terms and formulas
+
+For the sake of simplicity, we limit ourselves to the Peano language, even though everything that is done here could be more general, as seen in class.
+
+The first order terms involve free variables and bound (by quantifiers) ones. The definition of substitution is nettlesome owing to variable binding: $α$-equivalence has been introduced to get around this problem. However, the definition of substitution relying on $α$-equivalence is tricky to implement in Coq, and unpractical to use. This the reason why we will adopt another representation of the terms, with *De Bruijn* indices.
+
+In this setting, a variable is encoded by a number: the number of quantifiers above it (i.e. its ancestors), in the syntax tree of the formula. Free variables are variables which go "too high" in the tree. The type of terms is:
+
+```coq
+Inductive term :=
+  | Tvar : nat -> term
+  | Tzero : term
+  | Tsucc : term -> term
+  | Tplus : term -> term -> term
+  | Tmult : term -> term -> term.
+```
+
+and the type of formulas:
+
+```coq
+Inductive formula :=
+  | Fequal : term -> term -> formula
+  | Ffalse : formula
+  | Fand : formula -> formula -> formula
+  | For : formula -> formula -> formula
+  | Fimplies : formula -> formula -> formula
+  | Fexists : formula -> formula
+  | Fforall : formula -> formula.
+```
+
+Therefore, with this encoding, the formula:
+
+$$∀n \; ∃p \; n = 1 \ast p$$
+
+is represented by:
+
+```coq
+Fforall (Fexists (Fequal (Tvar 1) (Tmult (Tsucc Tzero) (Tvar 0))))
+```
+
+This representation has the advantage that two $α$-equivalent formulas are syntactically equal. However, the binding phenomenon can still happen, you'd better be careful. Luckily, these precautions are rather systematic and can be ensured with the `tlift` and `flift` functions, as well as a series of provided lemmas. Look closely at these, you will need them later.
+
+## 2.2. Closed expressions
+
+With *De Bruijn* indices, the notion of set of free variables seen in class is replaced by an upper bound for all the variables appearing in the expression. The predicate `cterm n t` means that all the variables of `t` are stricly lower than `n`. Beware though: quantifiers are taken into account. Going through a quantifier increments the upper bound by one. The `cterm` and `cformula` predicates are inductively defined.
+
+_________
+
+### *Questions*
+
+## 1. Prove the following lemmas:
+
+```coq
+Lemma cterm_1 : forall n t, cterm n t ->
+forall n', n <= n' -> cterm n' t.
+Lemma cterm_2 : forall n t, cterm n t ->
+forall k, tlift k t n = t.
+Lemma cterm_3 : forall n t, cterm n t ->
+forall t' j, n <= j -> tsubst j t' t = t.
+Lemma cterm_4 : forall n t, cterm (S n) t ->
+forall t', cterm 0 t' -> cterm n (tsubst n t' t).
+```
+
+## 2. Prove the analogous lemmas for formulas.
+
+
+_________
+
+
+## 2.3 Natural deduction
+
+A natural deduction derivation of the judgement $e ⊢ A$ is written in Coq as `ND e A`. The `ND` predicate is defined inductively with the rules of natural deduction, adapted to the use of *De Bruijn* indices.
+
+__________
+
+### Questions
+
+## 1. In the language and the derivation rules, we omitted the connectors $⊤$ (`Ftrue`), the negation (`Fnot`), and the equivalence (`Fequiv`). Define them, and prove that the associated introduction and elimination rules are admissible.
+
+
+## 2. Define an operator `nFforall` which iterates the operator `Fforall`. For instance, the formula `nFforall 2 A` should be tantamount to `Fforall (Fforall A)`. 
