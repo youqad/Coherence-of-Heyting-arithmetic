@@ -131,8 +131,10 @@ Hint Constructors cterm.
 
 Lemma cterm_1 : forall n t, cterm n t -> forall n', n <= n' -> cterm n' t.
 Proof.
-  (* TODO *)
-Admitted.
+  intros.
+  induction t; auto; inversion H; auto.
+Qed.
+
 
 Lemma cterm_2 : forall n t, cterm n t -> forall k, tlift k t n = t.
 Proof.
