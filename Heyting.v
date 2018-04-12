@@ -143,8 +143,14 @@ Qed.
 
 Lemma cterm_3 : forall n t, cterm n t -> forall t' j, n <= j -> tsubst j t' t = t.
 Proof.
-  (* TODO *)
-Admitted.
+  intros.
+  assert (H' := H).
+  apply cterm_2 with (k := j) in H.
+  apply cterm_2 with (k := S j) in H'.
+  rewrite <- H' at 1; rewrite <- H at 2.
+  apply (@tsubst_1 _ j _ j n); auto.
+Qed.
+
 
 Lemma cterm_4 : forall n t, cterm (S n) t ->
   forall t', cterm 0 t' -> cterm n (tsubst n t' t).
