@@ -155,8 +155,13 @@ Qed.
 Lemma cterm_4 : forall n t, cterm (S n) t ->
   forall t', cterm 0 t' -> cterm n (tsubst n t' t).
 Proof.
-  (* TODO *)
-Admitted.
+  induction t; induction t'; induction n; intros; 
+  inversion H; inversion H0; repeat (simpl; intuition);
+  inversion H2; repeat (simpl; intuition);
+  destruct n0; repeat (break; simpl; intuition);
+  repeat (intuition; simpl); 
+  repeat (rewrite (@cterm_2 0 _); apply (@cterm_1 0 _)); repeat auto.
+Qed.
 
 (* Formulas of Heyting Arithmetic. *)
 
