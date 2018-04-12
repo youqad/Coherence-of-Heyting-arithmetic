@@ -187,6 +187,15 @@ Lemma cterm_4 : forall n t, cterm (S n) t ->
 forall t', cterm 0 t' -> cterm n (tsubst n t' t).
 ```
 
+The first proof is done by induction on the term and by analysing the constructors of the inductive predicate `cterm` with `inversion`.
+
+```coq
+Lemma cterm_1 : forall n t, cterm n t -> forall n', n <= n' -> cterm n' t.
+Proof.
+  intros; induction t; auto; inversion H; auto.
+Qed.
+```
+
 ## 2. Prove the analogous lemmas for formulas.
 
 
