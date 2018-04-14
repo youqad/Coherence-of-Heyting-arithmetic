@@ -320,8 +320,13 @@ Qed.
 Lemma cformula_4 : forall n A, cformula (S n) A ->
   forall t', cterm 0 t' -> cformula n (fsubst n t' A).
 Proof.
-  (* TODO *)
-Admitted.
+  intros; generalize dependent n;
+  induction A; intros; eauto; inversion H;
+  simpl; 
+  try apply cterm_4 with (t':=t') in H3;
+  try apply cterm_4 with (t':=t') in H4;
+  eauto.
+Qed.
 
 (* Notations *)
 
