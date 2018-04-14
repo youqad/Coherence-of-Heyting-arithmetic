@@ -272,16 +272,36 @@ Inductive cformula n : formula -> Prop :=
 
 Hint Constructors cformula.
 
+Inductive subterm t: formula -> Prop :=
+  | subterm_equal : forall t', subterm t (Fequal t t')
+  | subterm_and : forall B C t',
+    subterm t B -> subterm t' C -> subterm t (Fand B C)
+  | subterm_or : forall B C t',
+    subterm t B -> subterm t' C -> subterm t (For B C)
+  | subterm_implies : forall B C t',
+    subterm t B -> cformula t' C -> subterm t (Fimplies B C)
+  | subterm_exists : forall B,
+    subterm t B -> subterm t (Fexists B)
+  | subterm_forall : forall B,
+    subterm t B -> subterm t (Fforall B).
+
+Hint Constructors subterm.
+
+
 Lemma cformula_1 : forall n A, cformula n A ->
   forall n', n <= n' -> cformula n' A.
 Proof.
-  (* TODO *)
-Admitted.
+  intros; generalize dependent n; generalize dependent n';
+  induction A; intros; eauto; inversion H; eauto.
+  apply cterm_1 with (n':=n') in H3;
+  apply cterm_1 with (n':=n') in H4;
+  eauto.
+Qed.
 
 Lemma cformula_2 : forall n A, cformula n A -> forall k, flift k A n = A.
 Proof.
-  (* TODO *)
-Admitted.
+  
+Qed.
 
 Lemma cformula_3 : forall n A, cformula n A ->
   forall t' j, n <= j -> fsubst j t' A = A.
