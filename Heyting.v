@@ -308,8 +308,14 @@ Qed.
 Lemma cformula_3 : forall n A, cformula n A ->
   forall t' j, n <= j -> fsubst j t' A = A.
 Proof.
-  (* TODO *)
-Admitted.
+  intros; generalize dependent n; 
+  generalize dependent j; induction A;
+  intros; eauto; inversion H; simpl; f_equal;
+  try apply cterm_3 with (t:=t) (n:=n);
+  try apply cterm_3 with (t:=t') (n:=n);
+  try apply cterm_3 with (t:=t0) (n:=n);
+  eauto.
+Qed.
 
 Lemma cformula_4 : forall n A, cformula (S n) A ->
   forall t', cterm 0 t' -> cformula n (fsubst n t' A).
