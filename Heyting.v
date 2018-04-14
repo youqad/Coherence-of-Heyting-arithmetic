@@ -300,7 +300,9 @@ Qed.
 
 Lemma cformula_2 : forall n A, cformula n A -> forall k, flift k A n = A.
 Proof.
-  
+  intros; generalize dependent n; induction A;
+  intros; eauto; inversion H; simpl; f_equal;
+  try apply cterm_2; eauto.
 Qed.
 
 Lemma cformula_3 : forall n A, cformula n A ->
