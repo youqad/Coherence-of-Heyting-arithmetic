@@ -416,14 +416,15 @@ Qed.
 
 Lemma Rnot_e : forall Γ A, Γ:-A -> Γ:- ~A -> Γ:-Ffalse.
 Proof.
-  
+  unfold Fnot; intros; now apply Rimpl_e with (B:=A).
 Qed.
 
 Lemma Riff_i : forall Γ A B,
   (A::Γ):-B -> (B::Γ):-A -> Γ:-(Fiff A B).
 Proof.
-  (* TODO *)
-Admitted.
+  unfold Fiff; intros; apply Rimpl_i in H;
+  apply Rimpl_i in H0; now constructor.
+Qed.
 
 Lemma nFforall_1 : forall n x t A,
   fsubst x t (nFforall n A) = nFforall n (fsubst (n + x) t A).
