@@ -472,7 +472,7 @@ Definition Thm T :=
 
 (* TODO: remplacer la formula par l'encodage du lemme n_Sn de la bibliothèque
    standard de Coq (qui exprime que forall n, n<>S n. *)
-Lemma HA_n_Sn : Thm Fforall (~ #0 = Tsucc #0).
+Lemma HA_n_Sn : Thm (Fforall (~ #0 = Tsucc #0)).
 Proof.
   (* TODO *)
 Admitted.
