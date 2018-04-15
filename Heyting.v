@@ -405,13 +405,14 @@ Notation "~ A" := (Fnot A) : pa_scope.
 
 Lemma Rtrue_i : forall Γ, Γ:-Ftrue.
 Proof.
-  
+  intros; unfold Ftrue; apply Rimpl_i; 
+  constructor; intuition.
 Qed.
 
 Lemma Rnot_i : forall Γ A, (A::Γ):-Ffalse -> Γ:- ~A.
 Proof.
-  (* TODO *)
-Admitted.
+  
+Qed.
 
 Lemma Rnot_e : forall Γ A, Γ:-A -> Γ:- ~A -> Γ:-Ffalse.
 Proof.
