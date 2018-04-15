@@ -429,8 +429,12 @@ Qed.
 Lemma nFforall_1 : forall n x t A,
   fsubst x t (nFforall n A) = nFforall n (fsubst (n + x) t A).
 Proof.
-  (* TODO *)
-Admitted.
+  induction n.
+  - auto.
+  - intros; simpl; f_equal.
+    assert (S (n + x) = n + S x); auto.
+    rewrite H; apply IHn with (x := S x) (A := A) (t := t).
+Qed.
 
 (* Peano axioms *)
 
