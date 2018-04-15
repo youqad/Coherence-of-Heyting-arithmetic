@@ -3,6 +3,7 @@
 (*                                                                        *)
 (*                         © 2011 Stéphane Glondu                         *)
 (*                         © 2013 Pierre Letouzey                         *)
+(*   modified by Alice Rixte, Farzad JafarRahmani, and Younesse Kaddar    *)
 (*                                                                        *)
 (*  This program is free software; you can redistribute it and/or modify  *)
 (*   it under the terms of the CeCILL free software license, version 2.   *)
@@ -388,11 +389,17 @@ where "Γ :- A" := (rule Γ A).
 
 (* Auxiliary connectives and admissible rules *)
 
-(* TODO: remplacer les quatre paramètres suivants par des définitions *)
-Parameter Ftrue : formula.
-Parameter Fnot : formula -> formula.
-Parameter Fiff : formula -> formula -> formula.
-Parameter nFforall : nat -> formula -> formula. (* n repeated forall *)
+(* TODO: define the following formulas *)
+Definition Ftrue := Ffalse ==> Ffalse.
+Definition Fnot A := (A ==> Ffalse)%pa.
+Definition Fiff A B := ((A ==> B) /\ (B ==> A))%pa.
+
+(* n repeated forall *)
+Fixpoint nFforall n :=
+  match n with
+    | 0 => (fun A => A)
+    | S m => (fun A => Fforall (nFforall m A))
+  end. 
 
 Notation "~ A" := (Fnot A) : pa_scope.
 
