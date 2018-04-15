@@ -411,13 +411,13 @@ Qed.
 
 Lemma Rnot_i : forall Γ A, (A::Γ):-Ffalse -> Γ:- ~A.
 Proof.
-  
+  intros; unfold Fnot; now constructor.
 Qed.
 
 Lemma Rnot_e : forall Γ A, Γ:-A -> Γ:- ~A -> Γ:-Ffalse.
 Proof.
-  (* TODO *)
-Admitted.
+  
+Qed.
 
 Lemma Riff_i : forall Γ A B,
   (A::Γ):-B -> (B::Γ):-A -> Γ:-(Fiff A B).
