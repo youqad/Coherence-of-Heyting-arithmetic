@@ -474,14 +474,15 @@ Definition Thm T :=
    standard de Coq (qui exprime que forall n, n<>S n. *)
 Lemma HA_n_Sn : Thm (Fforall (~ #0 = Tsucc #0)).
 Proof.
-  exists ( nFforall 0 (
-                      fsubst 0 Tzero ((~ #0 = Tsucc #0) /\
+  Definition Gamma :=  nFforall 0 (
+                      fsubst 0 Tzero (~ #0 = Tsucc #0) /\
                       Fforall ((~ #0 = Tsucc #0)
                                ==> fsubst 0 (Tsucc #0) (flift 1 (~ #0 = Tsucc #0) 1))
-                               ==> Fforall (~ #0 = Tsucc #0) ))
+                               ==> Fforall (~ #0 = Tsucc #0) )
             :: nFforall 2 (Tsucc #1 = Tsucc #0 ==> #1 = #0)
             :: nFforall 1 (~ Tzero = Tsucc #0)
-            :: nil).
+            :: nil.
+  exists Gamma.
   split.
   intros. destruct H. subst A. apply pa_ind.
   apply cformula_implies. apply cformula_equal. simpl. apply cterm_var. auto.
@@ -489,9 +490,37 @@ Proof.
   destruct H. subst A. apply pa_inj.
   destruct H. subst A. apply pa_discr.
   destruct H.
-  
-  (* TODO *)
-Admitted.
+
+  (*I declare hyp to make the proof terms more readable. This is just implication
+  elimination of the induction principle*)
+  Definition hyp := nFforall 0 (fsubst 0 Tzero (~ #0 = Tsucc #0) /\
+                    Fforall ((~ #0 = Tsucc #0)
+                               ==> fsubst 0 (Tsucc #0)
+                               (flift 1 (~ #0 = Tsucc #0) 1))).
+  apply Rimpl_e with hyp.
+  apply Rax.
+  left. unfold hyp. simpl. reflexivity.
+
+  unfold hyp. simpl. apply Rand_i.
+  assert ( (Tzero = Tsucc Tzero ==> Ffalse) = (fsubst 0 Tzero (~ Tzero = Tsucc #0))).
+  simpl. reflexivity. replace (Tzero = Tsucc Tzero ==> Ffalse).
+  apply Rforall_e. apply Rax. simpl. right. right. left. reflexivity.
+
+  apply Rforall_i. simpl. apply Rimpl_i. apply Rimpl_i.
+  apply Rimpl_e with (nFforall 0 (#0 = Tsucc # 0)).
+  apply Rax. simpl. right. left. unfold Fnot. reflexivity.
+  simpl. apply Rimpl_e with (nFforall 0 (Tsucc # 0 = Tsucc (Tsucc # 0))).
+  assert ((Tsucc # 0 = Tsucc (Tsucc # 0) ==> # 0 = Tsucc # 0)
+          = (fsubst 0 (Tsucc #0) (Tsucc #1 = Tsucc #0  ==> # 1 = # 0))).
+  reflexivity. simpl. replace (Tsucc # 0 = Tsucc (Tsucc # 0) ==> # 0 = Tsucc # 0).
+  apply Rforall_e.
+  assert ( (Fforall (Tsucc # 1 = Tsucc # 0 ==> # 1 = # 0))
+          = fsubst 0 #0 (Fforall (Tsucc # 1 = Tsucc # 0 ==> # 1 = # 0))).
+  reflexivity. simpl. replace (Fforall (Tsucc # 1 = Tsucc # 0 ==> # 1 = # 0)).
+  apply Rforall_e.
+  apply Rax. simpl. right; right; right;left. reflexivity.
+  simpl. apply Rax. left. reflexivity.
+Qed.
 
 (* Interpretation of terms, using a valuation for variables *)
 
