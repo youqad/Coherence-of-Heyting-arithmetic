@@ -474,6 +474,22 @@ Definition Thm T :=
    standard de Coq (qui exprime que forall n, n<>S n. *)
 Lemma HA_n_Sn : Thm (Fforall (~ #0 = Tsucc #0)).
 Proof.
+  exists ( nFforall 0 (
+                      fsubst 0 Tzero ((~ #0 = Tsucc #0) /\
+                      Fforall ((~ #0 = Tsucc #0)
+                               ==> fsubst 0 (Tsucc #0) (flift 1 (~ #0 = Tsucc #0) 1))
+                               ==> Fforall (~ #0 = Tsucc #0) ))
+            :: nFforall 2 (Tsucc #1 = Tsucc #0 ==> #1 = #0)
+            :: nFforall 1 (~ Tzero = Tsucc #0)
+            :: nil).
+  split.
+  intros. destruct H. subst A. apply pa_ind.
+  apply cformula_implies. apply cformula_equal. simpl. apply cterm_var. auto.
+  simpl. apply cterm_succ. auto. auto.
+  destruct H. subst A. apply pa_inj.
+  destruct H. subst A. apply pa_discr.
+  destruct H.
+  
   (* TODO *)
 Admitted.
 
