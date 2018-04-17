@@ -484,42 +484,37 @@ Proof.
             :: nil.
   exists Gamma.
   split.
-  intros. destruct H. subst A. apply pa_ind.
-  apply cformula_implies. apply cformula_equal. simpl. apply cterm_var. auto.
-  simpl. apply cterm_succ. auto. auto.
-  destruct H. subst A. apply pa_inj.
-  destruct H. subst A. apply pa_discr.
-  destruct H.
+  (* (forall A, In A axioms -> PeanoAx A) *)
+  - intros; repeat (destruct H; try apply pa_ind;
+    try apply pa_inj; try apply pa_discr; try constructor; eauto).
+  
+  (* (axioms:-T) *)
 
-  (*I declare hyp to make the proof terms more readable. This is just implication
-  elimination of the induction principle*)
+  (* hyp is to make the proof terms more readable. This is just implication
+  elimination in the induction principle*)
   Definition hyp := nFforall 0 (fsubst 0 Tzero (~ #0 = Tsucc #0) /\
                     Fforall ((~ #0 = Tsucc #0)
                                ==> fsubst 0 (Tsucc #0)
                                (flift 1 (~ #0 = Tsucc #0) 1))).
-  apply Rimpl_e with hyp.
-  apply Rax.
-  left. unfold hyp. simpl. reflexivity.
-
-  unfold hyp. simpl. apply Rand_i.
-  assert ( (Tzero = Tsucc Tzero ==> Ffalse) = (fsubst 0 Tzero (~ Tzero = Tsucc #0))).
-  simpl. reflexivity. replace (Tzero = Tsucc Tzero ==> Ffalse).
-  apply Rforall_e. apply Rax. simpl. right. right. left. reflexivity.
-
-  apply Rforall_i. simpl. apply Rimpl_i. apply Rimpl_i.
-  apply Rimpl_e with (nFforall 0 (#0 = Tsucc # 0)).
-  apply Rax. simpl. right. left. unfold Fnot. reflexivity.
-  simpl. apply Rimpl_e with (nFforall 0 (Tsucc # 0 = Tsucc (Tsucc # 0))).
-  assert ((Tsucc # 0 = Tsucc (Tsucc # 0) ==> # 0 = Tsucc # 0)
-          = (fsubst 0 (Tsucc #0) (Tsucc #1 = Tsucc #0  ==> # 1 = # 0))).
-  reflexivity. simpl. replace (Tsucc # 0 = Tsucc (Tsucc # 0) ==> # 0 = Tsucc # 0).
-  apply Rforall_e.
-  assert ( (Fforall (Tsucc # 1 = Tsucc # 0 ==> # 1 = # 0))
+  - apply Rimpl_e with hyp.
+    + apply Rax; simpl; auto.
+    + simpl; apply Rand_i; simpl.
+      assert ((Tzero = Tsucc Tzero ==> Ffalse) = (fsubst 0 Tzero (~ Tzero = Tsucc #0)));
+          auto; rewrite H; apply Rforall_e; constructor; simpl; auto.
+      apply Rforall_i; apply Rimpl_i; apply Rimpl_i;
+      apply (@Rimpl_e _ (# 0 = Tsucc # 0) Ffalse).
+      constructor; simpl; auto.
+      apply (@Rimpl_e _ (Tsucc # 0 = Tsucc (Tsucc # 0)) (# 0 = Tsucc # 0)).
+      assert ((Tsucc # 0 = Tsucc (Tsucc # 0) ==> # 0 = Tsucc # 0)
+          = (fsubst 0 (Tsucc #0) (Tsucc #1 = Tsucc #0  ==> # 1 = # 0)));
+          simpl; auto.
+          rewrite H; apply Rforall_e.
+      assert ( (Fforall (Tsucc # 1 = Tsucc # 0 ==> # 1 = # 0))
           = fsubst 0 #0 (Fforall (Tsucc # 1 = Tsucc # 0 ==> # 1 = # 0))).
-  reflexivity. simpl. replace (Fforall (Tsucc # 1 = Tsucc # 0 ==> # 1 = # 0)).
-  apply Rforall_e.
-  apply Rax. simpl. right; right; right;left. reflexivity.
-  simpl. apply Rax. left. reflexivity.
+          simpl; auto.
+      rewrite H0; apply Rforall_e;
+      constructor; simpl; auto.
+      constructor; simpl; auto.
 Qed.
 
 (* Interpretation of terms, using a valuation for variables *)
