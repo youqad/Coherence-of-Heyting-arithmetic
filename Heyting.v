@@ -542,7 +542,7 @@ Lemma tinterp_1 : forall t v0 v1 v2,
   tinterp (v0++v1++v2) (tlift (length v1) t (length v0)) =
   tinterp (v0++v2) t.
 Proof.
-Qed.
+  Admitted.
 
 Lemma tinterp_2 : forall t' t v1 v2,
   tinterp (v1 ++ v2) (tsubst (length v1) t' t) =
@@ -602,5 +602,9 @@ Admitted.
 
 Theorem coherence : ~Thm Ffalse.
 Proof.
-  (* TODO *)
-Admitted.
+  intro.
+  assert (finterp nil  Ffalse).
+  apply soundness; auto.
+  simpl in H0; auto.
+Qed.
+  
