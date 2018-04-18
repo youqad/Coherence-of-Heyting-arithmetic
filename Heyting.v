@@ -614,12 +614,80 @@ Proof.
   (* TODO *)
 Admitted.
 
-Theorem soundness : forall A, Thm A -> forall v, finterp v A.
+Lemma soundness_axiom_2 :  ~PeanoAx Ffalse.
 Proof.
-  (* TODO *)
+  intro. assert (finterp nil  Ffalse).
+  apply soundness_axioms. auto. simpl in H0; auto.
+Qed.
+
+(*Lemma peano_not : forall B, PeanoAx(Fnot B) <-> ~PeanoAx(B).
+Admitted.*)
+
+Lemma peano_and : forall B C, PeanoAx B /\ PeanoAx C <-> PeanoAx (B /\ C).
+Proof.
 Admitted.
 
+Lemma and_commute : forall B C, PeanoAx (B /\ C) <-> PeanoAx (C /\ B).
+Admitted.
+
+
+Lemma or_right : forall B C, PeanoAx B -> PeanoAx (B \/ C).
+Admitted.
+
+Lemma or_left : forall B C, PeanoAx C -> PeanoAx (B \/ C).
+Admitted.
+
+Lemma peano_or : forall B C, PeanoAx (B \/ C) <-> PeanoAx B \/ PeanoAx C.
+Admitted.
+
+Lemma peano_imp: forall B C, (PeanoAx B -> PeanoAx C) <->(PeanoAx (B==>C)).
+Admitted.
+
+
+Theorem soundness : forall A, Thm A -> forall v, finterp v A.
+Proof.
+
+  
+  intro; intro; intro. apply soundness_axioms.
+  repeat (destruct H).
+  induction H0.
+  
+  - apply H. apply H0.
+
+  (*false*)
+  - cut False. auto. apply soundness_axiom_2. auto.
+
+  (*and*)
+  - apply peano_and. split; auto.
+  - simpl in  H0. apply peano_and with C. apply and_commute. auto.
+  - apply peano_and with B. auto.
+
+  (*or*)
+  - apply or_right; auto.
+  - apply or_left; auto.
+  - assert (PeanoAx B \/ PeanoAx C). apply peano_or. auto. destruct H0; auto.
+    apply IHrule2. simpl. intros. destruct H1.
+    + assert (PeanoAx B \/ PeanoAx C). apply peano_or. auto. rewrite <- H1. auto.
+    + apply H. auto.
+    + apply IHrule3. simpl. intros. destruct H1.
+      * rewrite <- H1. auto.
+      * apply H. auto.
+
+  (*implication*)
+  - simpl in IHrule.  apply peano_imp. intro. apply IHrule. intros. destruct H2.
+    + rewrite <- H2. auto.
+    + apply H. auto.
+  - apply peano_imp with B;auto.
+
+  (*forall*)
+  -
+    Admitted.
+    
 Theorem coherence : ~Thm Ffalse.
 Proof.
-  (* TODO *)
-Admitted.
+  intro.
+  assert (finterp nil  Ffalse).
+  apply soundness; auto.
+  simpl in H0; auto.
+Qed.
+  
