@@ -530,12 +530,19 @@ Fixpoint tinterp (v:valuation) t :=
     | Tmult t t' => tinterp v t * tinterp v t'
   end.
 
+Lemma tlift_unit: forall t n, tlift 0 t n = t.
+Proof.
+  induction t; intros; 
+  repeat (simpl; auto; break);
+  simpl; try f_equal; 
+  try apply IHt; try apply IHt1; try apply IHt2.
+Qed.
+
 Lemma tinterp_1 : forall t v0 v1 v2,
   tinterp (v0++v1++v2) (tlift (length v1) t (length v0)) =
   tinterp (v0++v2) t.
 Proof.
-  (* TODO *)
-Admitted.
+Qed.
 
 Lemma tinterp_2 : forall t' t v1 v2,
   tinterp (v1 ++ v2) (tsubst (length v1) t' t) =
