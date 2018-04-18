@@ -542,7 +542,26 @@ Lemma tinterp_1 : forall t v0 v1 v2,
   tinterp (v0++v1++v2) (tlift (length v1) t (length v0)) =
   tinterp (v0++v2) t.
 Proof.
-Qed.
+  induction t; induction v0; induction v1; induction v2;
+  try rewrite tlift_unit;
+  try apply IHv0; intuition;
+  try apply IHv1; intuition;
+  try apply IHv2; intuition;
+  simpl; 
+  try destruct n; repeat break; auto;
+  repeat rewrite <- app_nil_end with (A := nat).
+
+
+  try repeat rewrite nth_overflow with (n:= n) (d:=0); auto;
+  try rewrite app_length; simpl; auto.
+  rewrite nth_overflow with (d:=0); auto.
+  rewrite app_length; simpl; auto.
+
+  intuition.
+  try apply 
+
+  try unfold tlift; intuition.
+Admitted.
 
 Lemma tinterp_2 : forall t' t v1 v2,
   tinterp (v1 ++ v2) (tsubst (length v1) t' t) =
