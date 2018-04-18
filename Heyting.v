@@ -595,10 +595,32 @@ Proof.
   (* TODO *)
 Admitted.
 
+Lemma soundness_axiom_2 :  ~PeanoAx Ffalse.
+Proof.
+  intro. assert (finterp nil  Ffalse).
+  apply soundness_axioms. auto. simpl in H0; auto.
+Qed.
+
+Lemma peano_and : forall B C, PeanoAx B /\ PeanoAx C -> PeanoAx (B /\ C).
+Proof.
+  Admitted.
+
 Theorem soundness : forall A, Thm A -> forall v, finterp v A.
 Proof.
-  (* TODO *)
-Admitted.
+
+  
+  intro; intro; intro. apply soundness_axioms.
+  repeat (destruct H).
+  induction H0.
+  
+  apply H. apply H0.
+  
+  cut False. auto. apply soundness_axiom_2. apply IHrule. apply H.
+  apply peano_and. split; auto.
+  simpl in  H0.
+  Admitted.
+  
+
 
 Theorem coherence : ~Thm Ffalse.
 Proof.
