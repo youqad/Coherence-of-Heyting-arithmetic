@@ -615,20 +615,33 @@ Proof.
 Admitted.
 
 
+(*Lemma finterp_exists : forall A, forall v, finterp v (flift 1 A 0 )
+                                                  -> finterp v A.
+Admitted.*)
+Lemma finterp_exists : forall A,  forall t,(forall v, finterp v (fsubst 0 t A ))
+                                                  -> forall v, finterp v A.
+Proof.
+  intros. induction t.
+  - assert (fsubst 0 (#n) A = A).
+    induction A.
+    + simpl. induction t. induction t0.  induction n0. induction n1.
+      induction n. auto. simpl.
 
+      (*I think this lemma is false (Alice)*)
+  Admitted.
 
 
 Theorem soundness : forall A, Thm A -> forall v, finterp v A.
 Proof.
 
   
-  intro; intro; intro. repeat (destruct H).
+  intro; intro. repeat (destruct H).
   induction H0.
   
   - apply soundness_axioms. apply H. apply H0.
 
   (*false*)
-  - cut False. auto. apply IHrule.  auto.
+  - cut False. auto. apply IHrule.  auto. apply nil.
 
   (*and*)
   - simpl . split; auto.
@@ -638,16 +651,15 @@ Proof.
   (*or*)
   - simpl. left. auto.
   - simpl. right. auto.
-  - simpl in IHrule1. destruct IHrule1.
-    + auto.
-    + admit.
-    + admit.
-  - simpl. intro. apply IHrule. admit.
+  - simpl in IHrule1. admit.
+  - simpl. intros. apply IHrule. admit.
   - simpl in IHrule1. auto.
-  - simpl. intro. admit.
+  - simpl. intros. apply IHrule. admit.
   - simpl in IHrule. admit.
-  - simpl. admit.
-  - admit.
+  - simpl. intro. exists 0. apply finterp_exists with t. auto.
+  - simpl in IHrule1. admit. (*simpl in IHrule2. intro. apply finterp_exists. apply IHrule2.
+    intros. destruct H0
+    + rewrite <- H0.*)
 Admitted.
     
 Theorem coherence : ~Thm Ffalse.
