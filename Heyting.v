@@ -593,29 +593,23 @@ Definition cinterp v Γ := forall A, In A Γ -> finterp v A.
 Lemma soundness_rules : forall Γ A, Γ:-A ->
   forall v, cinterp v Γ -> finterp v A.
 Proof.
-  (* TODO *)
-Admitted.
+  intros.  induction H.
+  - apply H0. auto.
+  - cut False. auto. simpl in IHrule. auto.
+  - simpl. split; auto.
+  - simpl in IHrule. apply IHrule. auto.
+  - simpl in IHrule. apply IHrule. auto.
+  - simpl. left. auto.
+  - simpl. right. auto.
+  - simpl in IHrule1.
 
+    
 Lemma soundness_axioms : forall A, PeanoAx A -> forall v, finterp v A.
 Proof.
-  (* TODO *)
+  intros.  induction H.
+  - induction v; simpl; auto.
+  -
 Admitted.
-
-
-(*Lemma finterp_exists : forall A, forall v, finterp v (flift 1 A 0 )
-                                                  -> finterp v A.
-Admitted.*)
-Lemma finterp_exists : forall A,  forall t,(forall v, finterp v (fsubst 0 t A ))
-                                                  -> forall v, finterp v A.
-Proof.
-  intros. induction t.
-  - assert (fsubst 0 (#n) A = A).
-    induction A.
-    + simpl. induction t. induction t0.  induction n0. induction n1.
-      induction n. auto. simpl.
-
-      (*I think this lemma is false (Alice)*)
-  Admitted.
 
 
 Theorem soundness : forall A, Thm A -> forall v, finterp v A.
