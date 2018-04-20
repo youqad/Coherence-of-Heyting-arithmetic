@@ -620,34 +620,9 @@ Proof.
 
 Theorem soundness : forall A, Thm A -> forall v, finterp v A.
 Proof.
-
-  
-  intro; intro. repeat (destruct H).
-  induction H0.
-  
-  - apply soundness_axioms. apply H. apply H0.
-
-  (*false*)
-  - cut False. auto. apply IHrule.  auto. apply nil.
-
-  (*and*)
-  - simpl . split; auto.
-  - simpl in  IHrule. apply IHrule. auto.
-  - simpl in  IHrule. apply IHrule. auto. 
-
-  (*or*)
-  - simpl. left. auto.
-  - simpl. right. auto.
-  - simpl in IHrule1. admit.
-  - simpl. intros. apply IHrule. admit.
-  - simpl in IHrule1. auto.
-  - simpl. intros. apply IHrule. admit.
-  - simpl in IHrule. admit.
-  - simpl. intro. exists 0. apply finterp_exists with t. auto.
-  - simpl in IHrule1. admit. (*simpl in IHrule2. intro. apply finterp_exists. apply IHrule2.
-    intros. destruct H0
-    + rewrite <- H0.*)
-Admitted.
+  intro; intro. repeat (destruct H). intro. apply soundness_rules with x. auto.
+  unfold cinterp. intros. apply soundness_axioms. auto.
+ Qed.
     
 Theorem coherence : ~Thm Ffalse.
 Proof.
