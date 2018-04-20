@@ -700,8 +700,127 @@ Lemma finterp_2 : forall t' A v1 v2,
   finterp (v1 ++ v2) (fsubst (length v1) t' A) <->
   finterp (v1 ++ (tinterp v2 t') :: v2) A.
 Proof.
-  (* TODO *)
-Admitted.
+intros.
+revert v1 v2.
+induction A; intros.
+
+simpl.
+split.
+intros.
+rewrite tinterp_2 in H.
+rewrite tinterp_2 in H.
+assumption.
+
+
+intros.
+rewrite tinterp_2.
+rewrite tinterp_2.
+assumption.
+
+
+simpl.
+split.
+intro.
+assumption.
+intro.
+assumption.
+
+
+split.
+intro.
+destruct H.
+apply IHA1 in H.
+split.
+assumption.
+apply IHA2 in H0.
+assumption.
+
+intro.
+destruct H.
+apply (IHA1 v1 v2) in H.
+split.
+assumption.
+apply (IHA2 v1 v2) in H0.
+assumption.
+
+
+split.
+intro.
+destruct H.
+left.
+simpl in H.
+apply (IHA1 v1 v2) in H.
+assumption.
+right.
+apply (IHA2 v1 v2) in H.
+assumption.
+
+
+intro.
+destruct H.
+left.
+simpl in H.
+apply (IHA1 v1 v2) in H.
+assumption.
+right.
+apply (IHA2 v1 v2) in H.
+assumption.
+
+split.
+intro.
+simpl in H.
+simpl.
+intro.
+apply (IHA1 v1 v2) in H0.
+apply H in H0.
+apply (IHA2 v1 v2) in H0.
+assumption.
+
+intro.
+simpl in H.
+simpl.
+intro.
+apply (IHA1 v1 v2) in H0.
+apply H in H0.
+apply (IHA2 v1 v2) in H0.
+assumption.
+
+split.
+intro.
+simpl.
+simpl in H.
+destruct H.
+exists x.
+rewrite app_comm_cons.
+apply (IHA (x::v1) v2).
+assumption.
+
+intro.
+simpl.
+simpl in H.
+destruct H.
+exists x.
+rewrite app_comm_cons.
+apply (IHA (x::v1) v2).
+assumption.
+
+split.
+intro.
+simpl.
+simpl in H.
+intro.
+rewrite app_comm_cons.
+apply (IHA (n::v1) v2).
+apply H.
+
+intro.
+simpl.
+simpl in H.
+intro.
+rewrite app_comm_cons.
+apply (IHA (n::v1) v2).
+apply H.
+Qed.
 
 (* Interpretation of contexts *)
 
