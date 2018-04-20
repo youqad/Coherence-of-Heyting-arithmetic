@@ -590,6 +590,12 @@ Definition cinterp v Γ := forall A, In A Γ -> finterp v A.
 
 (* Soundess of deduction rules *)
 
+Lemma f_to_c : forall v A Γ , finterp v A ->  cinterp v Γ -> cinterp v (A :: Γ).
+Proof.
+  intros. unfold cinterp in *. intros.
+  simpl in H1. destruct H1; try rewrite <- H1; auto .
+Qed.
+
 Lemma soundness_rules : forall Γ A, Γ:-A ->
   forall v, cinterp v Γ -> finterp v A.
 Proof.
@@ -601,8 +607,16 @@ Proof.
   - simpl in IHrule. apply IHrule. auto.
   - simpl. left. auto.
   - simpl. right. auto.
-  - simpl in IHrule1.
+  - simpl in IHrule1. destruct IHrule1.
+    + auto.
+    + simpl in IHrule2. apply IHrule2. apply f_to_c; auto.
+    + simpl in IHrule2. apply IHrule3. apply f_to_c; auto.
+  - simpl. intro. apply IHrule. apply f_to_c; auto.
+  - simpl in IHrule1. auto.
+  - simpl.
 
+Admitted.
+                                       
     
 Lemma soundness_axioms : forall A, PeanoAx A -> forall v, finterp v A.
 Proof.
