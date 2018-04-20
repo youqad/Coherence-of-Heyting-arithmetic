@@ -574,7 +574,39 @@ Lemma finterp_1 : forall A v0 v1 v2,
   finterp (v0 ++ v1 ++ v2) (flift (length v1) A (length v0)) <->
   finterp (v0 ++ v2) A.
 Proof.
-  (* TODO *)
+split.
+intros.
+induction A.
+simpl.
+simpl in H.
+rewrite tinterp_1 in H.
+rewrite tinterp_1 in H.
+assumption.
+
+auto.
+
+simpl.
+simpl in H.
+split.
+destruct H.
+apply IHA1 in H.
+assumption.
+destruct H.
+apply IHA2 in H0.
+assumption.
+
+
+destruct H.
+left.
+simpl in H.
+apply IHA1 in H.
+assumption.
+right.
+apply IHA2 in H.
+assumption.
+
+simpl in H.
+intro.
 Admitted.
 
 Lemma finterp_2 : forall t' A v1 v2,
