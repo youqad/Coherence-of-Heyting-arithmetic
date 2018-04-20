@@ -596,25 +596,49 @@ Proof.
   simpl in H1. destruct H1; try rewrite <- H1; auto .
 Qed.
 
+(*added by Alice*)
+(*I hope this is true*)
+Lemma cinterp1 : forall Γ v0 v1 v2,
+  cinterp (v0 ++ v1 ++ v2) (clift (length v1) Γ (length v0)) <->
+  cinterp (v0 ++ v2) Γ.
+Proof.
+  intros. induction Γ.
+  - unfold cinterp. simpl. split;intros;auto.
+  - simpl.
+    Admitted.
+
+
+
+(*Added by Alice*)
+(*Particular case of cinterp1*)
+Lemma cinterp_forall : forall Γ n v , cinterp v Γ
+                                      -> cinterp (n :: v) (clift 1 Γ 0) .
+Proof.
+  intros. assert (cinterp (nil ++ (n::nil) ++ v ++ nil)
+                          (clift (length (n::nil))  Γ (length (nil:list nat)))). 
+  - apply cinterp1. simpl. rewrite app_nil_r. auto.
+  - simpl in H0. rewrite app_nil_r in H0. auto.
+Qed.
+
 Lemma soundness_rules : forall Γ A, Γ:-A ->
   forall v, cinterp v Γ -> finterp v A.
 Proof.
-  intros.  induction H.
-  - apply H0. auto.
-  - cut False. auto. simpl in IHrule. auto.
+  (*intros. apply yeswecan with Γ. auto.*)
+  intro;intro;intro.  induction H.
+  - intros. apply H0. auto.
+  - intros. cut False. auto. simpl in IHrule. apply IHrule with v. auto.
   - simpl. split; auto.
-  - simpl in IHrule. apply IHrule. auto.
-  - simpl in IHrule. apply IHrule. auto.
+  - simpl in IHrule. apply IHrule. 
+  - simpl in IHrule. apply IHrule. 
   - simpl. left. auto.
   - simpl. right. auto.
-  - simpl in IHrule1. destruct IHrule1.
-    + auto.
-    + simpl in IHrule2. apply IHrule2. apply f_to_c; auto.
-    + simpl in IHrule2. apply IHrule3. apply f_to_c; auto.
-  - simpl. intro. apply IHrule. apply f_to_c; auto.
+  - intros. simpl in IHrule1. assert (finterp v B \/ finterp v C); auto.
+    destruct H3.
+    + apply IHrule2. apply f_to_c; auto.
+    + apply IHrule3. apply f_to_c; auto.
+  - simpl. intros. apply IHrule. apply f_to_c; auto.
   - simpl in IHrule1. auto.
-  - simpl.
-
+  - simpl. intros. apply IHrule. apply cinterp_forall. auto.
 Admitted.
                                        
     
@@ -628,7 +652,7 @@ Admitted.
 
 Theorem soundness : forall A, Thm A -> forall v, finterp v A.
 Proof.
-  intro; intro. repeat (destruct H). intro. apply soundness_rules with x. auto.
+  intro; intro. repeat (destruct H). intro. apply yeswecan with x. auto.
   unfold cinterp. intros. apply soundness_axioms. auto.
  Qed.
     
