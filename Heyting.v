@@ -620,6 +620,10 @@ Proof.
   - simpl in H0. rewrite app_nil_r in H0. auto.
 Qed.
 
+Lemma finterp_misc : forall v t B, (exists n, finterp (n::v) B)<-> finterp v (fsubst 0 t B).
+Admitted.
+
+
 Lemma soundness_rules : forall Γ A, Γ:-A ->
   forall v, cinterp v Γ -> finterp v A.
 Proof.
@@ -639,6 +643,9 @@ Proof.
   - simpl. intros. apply IHrule. apply f_to_c; auto.
   - simpl in IHrule1. auto.
   - simpl. intros. apply IHrule. apply cinterp_forall. auto.
+  - intros. simpl in IHrule. simpl.
+    apply finterp_misc . exists 0. auto.
+  - intros. simpl. apply <- finterp_misc with t .
 Admitted.
                                        
     
