@@ -735,6 +735,26 @@ Proof.
   simpl in H1. destruct H1; try rewrite <- H1; auto .
 Qed.
 
+
+Lemma for_soundness_misc : forall Γ (A:formula) B, In A Γ -> In A (B::Γ).
+Proof.
+  intros. simpl. auto.
+Qed.
+
+
+(*this lemma is useful for cinterp_1 and soundness_rules*)
+Lemma soundness_misc : forall Γ A m n, In A (clift m Γ n) -> 
+                                        exists B, A = flift m B n /\ In B Γ.
+Proof.
+  intros. induction Γ; simpl in H; try contradiction.
+  simpl in H. destruct H.
+  - exists a. split; try simpl; auto.
+           - assert (exists B : formula, A = flift m B n /\ In B Γ). auto.
+             destruct H0 as [B H0]. exists B. destruct H0.
+             split ; try apply for_soundness_misc; auto.
+Qed.
+
+
 (*added by Alice*)
 (*I hope this is true*)
 Lemma cinterp_1 : forall Γ v0 v1 v2,
@@ -742,9 +762,15 @@ Lemma cinterp_1 : forall Γ v0 v1 v2,
                     cinterp (v0 ++ v1 ++ v2) (clift (length v1) Γ (length v0)) .
                     
 Proof.
-  intros. induction Γ.
-  - unfold cinterp. simpl. 
-Admitted.
+  intro. induction Γ.
+  - intros. simpl. unfold cinterp. intros. simpl in H0. contradiction.    
+  -  unfold cinterp.  simpl. intros. destruct H0.
+     + rewrite <- H0. apply finterp_1. apply H. auto.
+     + assert (exists B, A = flift (length v1) B (length v0)/\ In B Γ).
+       apply soundness_misc. auto.
+       destruct H1 as [B H1]. destruct H1. rewrite H1. apply finterp_1.
+       apply H. auto.
+Qed.
 
 
 Lemma finterp_misc  : forall v t B,  finterp v (fsubst 0 t B) <->
@@ -778,7 +804,7 @@ Proof.
   - simpl in H0. apply H0. auto.
 Qed.
 
-(*Added by Alice*)
+
 (*Particular case of cinterp1*)
 Lemma cinterp_forall : forall Γ n v , cinterp v Γ ->
                                       cinterp (n :: v) (clift 1 Γ 0).
@@ -791,22 +817,6 @@ Proof.
 Qed.
 
 
-Lemma for_soundness_misc : forall Γ (A:formula) B, In A Γ -> In A (B::Γ).
-Proof.
-  intros. simpl. auto.
-Qed.
-
-Lemma soundness_misc : forall Γ A, In A (clift 1 Γ 0) -> 
-                                        exists B, A = flift 1 B 0 /\ In B Γ.
-Proof.
-  intros. induction Γ.
-  - simpl in H. contradiction.
-  - simpl in H. destruct H.
-    + exists a. split; try simpl; auto.
-             + assert (exists B : formula, A = flift 1 B 0 /\ In B Γ). auto.
-               destruct H0 as [B H0]. exists B. destruct H0.
-               split ; try apply for_soundness_misc; auto.
-Qed.
 
 Lemma soundness_rules : forall Γ A, Γ:-A ->
   forall v, cinterp v Γ -> finterp v A.
