@@ -737,31 +737,63 @@ Qed.
 
 (*added by Alice*)
 (*I hope this is true*)
-Lemma cinterp1 : forall Γ v0 v1 v2,
-  cinterp (v0 ++ v1 ++ v2) (clift (length v1) Γ (length v0)) <->
-  cinterp (v0 ++ v2) Γ.
+Lemma cinterp_1 : forall Γ v0 v1 v2,
+                    cinterp (v0 ++ v2) Γ ->
+                    cinterp (v0 ++ v1 ++ v2) (clift (length v1) Γ (length v0)) .
+                    
 Proof.
   intros. induction Γ.
-  - unfold cinterp. simpl. split;intros;auto.
-  - simpl.
+  - unfold cinterp. simpl. 
     Admitted.
 
+Lemma finterp_misc_2 :  forall v A, 
+  (exists n, (finterp (n :: v) (flift 1 A 0))) ->
+  finterp v A.
+Proof.
+  intros.
+   destruct H as [n H].
+    assert (finterp ((nil : list nat) ++ (n :: nil) ++ v)
+                    (flift (length (n :: nil)) A (length (nil : list nat))) <->
+            finterp ((nil : list nat) ++ v) A).
+  - apply finterp_1.
+  - simpl in H0. apply H0. auto.
+   
+Qed.
 
+
+Lemma finterp_misc_3 :  forall n v A, 
+                          finterp v A ->
+                          (finterp (n :: v) (flift 1 A 0)).
+Proof.
+  intros. assert (finterp ((nil : list nat) ++ (n :: nil) ++ v)
+                          (flift (length (n :: nil)) A
+                                 (length (nil : list nat))) <->
+                  finterp ((nil : list nat) ++ v) A).
+  - apply finterp_1.
+  - simpl in H0. apply H0. auto.
+Qed.
 
 (*Added by Alice*)
 (*Particular case of cinterp1*)
-Lemma cinterp_forall : forall Γ n v , cinterp v Γ
-                                      -> cinterp (n :: v) (clift 1 Γ 0) .
+Lemma cinterp_forall : forall Γ n v , cinterp v Γ ->
+                                      cinterp (n :: v) (clift 1 Γ 0).
 Proof.
-  intros. assert (cinterp (nil ++ (n::nil) ++ v ++ nil)
-                          (clift (length (n::nil))  Γ (length (nil:list nat)))). 
-  - apply cinterp1. simpl. rewrite app_nil_r. auto.
-  - simpl in H0. rewrite app_nil_r in H0. auto.
+
+  intros. assert (cinterp ( nil ++(n::nil) ++ v)
+                          (clift (length (n::nil))  Γ (length (nil:list nat)))).
+  - apply (cinterp_1  Γ nil (n::nil) v). simpl. auto.
+  - simpl in H0. auto.
 Qed.
 
-Lemma finterp_misc : forall v t B, (exists n, finterp (n::v) B)<-> finterp v (fsubst 0 t B).
+
+Lemma finterp_misc  : forall v t B,  finterp v (fsubst 0 t B) <->
+                                     (exists n, finterp (n::v) B).
 Admitted.
 
+Lemma soundness_misc : forall Γ A, In A (clift 1 Γ 0) -> 
+                                        exists B, A = flift 1 B 0 /\ In B Γ.
+Proof.
+Admitted.
 
 Lemma soundness_rules : forall Γ A, Γ:-A ->
   forall v, cinterp v Γ -> finterp v A.
@@ -784,8 +816,18 @@ Proof.
   - simpl. intros. apply IHrule. apply cinterp_forall. auto.
   - intros. simpl in IHrule. simpl.
     apply finterp_misc . exists 0. auto.
-  - intros. simpl. (*apply <- finterp_misc with t .*)
-Admitted.
+  - intros. simpl. apply finterp_misc with t . auto.
+  - intros. unfold cinterp in IHrule2. simpl in *. apply finterp_misc_2.
+    assert (exists n, finterp (n::v) B). auto.
+    destruct H2. exists x.
+    apply IHrule2 . intros. destruct H3.
+    + rewrite <- H3. auto.
+    + assert (exists C, A0 = flift 1 C 0 /\ In C Γ). apply soundness_misc. auto.
+      destruct H4 as [C H4]. destruct H4.
+      assert (finterp v C). auto. rewrite H4.
+      apply finterp_misc_3. auto.
+Qed.                 
+
                                        
     
 Lemma soundness_axioms : forall A, PeanoAx A -> forall v, finterp v A.
@@ -809,4 +851,4 @@ Proof.
   apply soundness; auto.
   simpl in H0; auto.
 Qed.
-  
+
