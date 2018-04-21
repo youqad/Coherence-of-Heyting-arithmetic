@@ -547,13 +547,32 @@ Proof.
   repeat rewrite app_nth1; auto.
 Qed.
 
+Set Printing All.
 
 Lemma tinterp_2 : forall t' t v1 v2,
   tinterp (v1 ++ v2) (tsubst (length v1) t' t) =
   tinterp (v1 ++ (tinterp v2 t') :: v2) t.
 Proof.
-  (* TODO *)
-Admitted.
+  intros; induction t;
+  simpl;
+  try destruct (nat_compare_spec (length v1) n); auto.
+  - rewrite <- (app_nil_l v1); repeat rewrite <- app_assoc.
+    assert (length (nil ++ v1) = length v1); auto; rewrite H0.
+    assert (@length nat nil = 0); auto; rewrite <- H1.
+    rewrite (tinterp_1 t' nil v1 v2); simpl.
+    assert (n - length v1 = 0); auto.
+    rewrite (app_nth2 v1 (tinterp v2 t' :: v2) 0);
+    simpl. rewrite H2; auto. auto.
+  - rewrite (app_nth2 v1 (tinterp v2 t' :: v2) 0); auto.
+    unfold tinterp at 1.
+    rewrite (app_nth2 v1 v2 0); auto.
+    assert (tinterp v2 t' :: v2 = ((tinterp v2 t')::nil) ++ v2); auto.
+    rewrite H0; rewrite (app_nth2 _ v2 0);
+    assert (length (tinterp v2 t' :: nil) = 1); auto; rewrite H1.
+    assert (Init.Nat.pred n - length v1 = n - length v1 - 1); auto;
+    rewrite H2; auto.
+  - simpl; repeat rewrite app_nth1; auto.
+Qed.
 
 (* Interpretation of formulas *)
 
@@ -599,15 +618,15 @@ Lemma finterp_2 : forall t' A v1 v2,
   finterp (v1 ++ v2) (fsubst (length v1) t' A) <->
   finterp (v1 ++ (tinterp v2 t') :: v2) A.
 Proof.
-intros; revert v1 v2; induction A; intros;
-simpl; split; intuition;
-repeat rewrite <- tinterp_2; auto;
-repeat rewrite tinterp_2; auto;
-try apply (@IHA1 v1 v2) in H0; intuition;
-try apply (@IHA2 v1 v2) in H1; intuition;
-try apply (@IHA2 v1 v2) in H0; intuition;
-try (destruct H; exists x; rewrite app_comm_cons; apply (@IHA (x::v1) v2)); auto;
-try (apply (@IHA (n::v1) v2); rewrite <- app_comm_cons); intuition.
+  intros; revert v1 v2; induction A; intros;
+  simpl; split; intuition;
+  repeat rewrite <- tinterp_2; auto;
+  repeat rewrite tinterp_2; auto;
+  try apply (@IHA1 v1 v2) in H0; intuition;
+  try apply (@IHA2 v1 v2) in H1; intuition;
+  try apply (@IHA2 v1 v2) in H0; intuition;
+  try (destruct H; exists x; rewrite app_comm_cons; apply (@IHA (x::v1) v2)); auto;
+  try (apply (@IHA (n::v1) v2); rewrite <- app_comm_cons); intuition.
 Qed.
 
 (* Interpretation of contexts *)
