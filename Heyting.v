@@ -470,8 +470,6 @@ Definition Thm T :=
 
 (* Example of theorem *)
 
-(* TODO: remplacer la formula par l'encodage du lemme n_Sn de la bibliothèque
-   standard de Coq (qui exprime que forall n, n<>S n. *)
 Lemma HA_n_Sn : Thm (Fforall (~ #0 = Tsucc #0)).
 Proof.
   Definition Gamma :=  nFforall 0 (
@@ -601,126 +599,15 @@ Lemma finterp_2 : forall t' A v1 v2,
   finterp (v1 ++ v2) (fsubst (length v1) t' A) <->
   finterp (v1 ++ (tinterp v2 t') :: v2) A.
 Proof.
-intros.
-revert v1 v2.
-induction A; intros.
-
-simpl.
-split.
-intros.
-rewrite tinterp_2 in H.
-rewrite tinterp_2 in H.
-assumption.
-
-
-intros.
-rewrite tinterp_2.
-rewrite tinterp_2.
-assumption.
-
-
-simpl.
-split.
-intro.
-assumption.
-intro.
-assumption.
-
-
-split.
-intro.
-destruct H.
-apply IHA1 in H.
-split.
-assumption.
-apply IHA2 in H0.
-assumption.
-
-intro.
-destruct H.
-apply (IHA1 v1 v2) in H.
-split.
-assumption.
-apply (IHA2 v1 v2) in H0.
-assumption.
-
-
-split.
-intro.
-destruct H.
-left.
-simpl in H.
-apply (IHA1 v1 v2) in H.
-assumption.
-right.
-apply (IHA2 v1 v2) in H.
-assumption.
-
-
-intro.
-destruct H.
-left.
-simpl in H.
-apply (IHA1 v1 v2) in H.
-assumption.
-right.
-apply (IHA2 v1 v2) in H.
-assumption.
-
-split.
-intro.
-simpl in H.
-simpl.
-intro.
-apply (IHA1 v1 v2) in H0.
-apply H in H0.
-apply (IHA2 v1 v2) in H0.
-assumption.
-
-intro.
-simpl in H.
-simpl.
-intro.
-apply (IHA1 v1 v2) in H0.
-apply H in H0.
-apply (IHA2 v1 v2) in H0.
-assumption.
-
-split.
-intro.
-simpl.
-simpl in H.
-destruct H.
-exists x.
-rewrite app_comm_cons.
-apply (IHA (x::v1) v2).
-assumption.
-
-intro.
-simpl.
-simpl in H.
-destruct H.
-exists x.
-rewrite app_comm_cons.
-apply (IHA (x::v1) v2).
-assumption.
-
-split.
-intro.
-simpl.
-simpl in H.
-intro.
-rewrite app_comm_cons.
-apply (IHA (n::v1) v2).
-apply H.
-
-intro.
-simpl.
-simpl in H.
-intro.
-rewrite app_comm_cons.
-apply (IHA (n::v1) v2).
-apply H.
+intros; revert v1 v2; induction A; intros;
+simpl; split; intuition;
+repeat rewrite <- tinterp_2; auto;
+repeat rewrite tinterp_2; auto;
+try apply (@IHA1 v1 v2) in H0; intuition;
+try apply (@IHA2 v1 v2) in H1; intuition;
+try apply (@IHA2 v1 v2) in H0; intuition;
+try (destruct H; exists x; rewrite app_comm_cons; apply (@IHA (x::v1) v2)); auto;
+try (apply (@IHA (n::v1) v2); rewrite <- app_comm_cons); intuition.
 Qed.
 
 (* Interpretation of contexts *)
