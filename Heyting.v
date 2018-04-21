@@ -855,9 +855,9 @@ Qed.
     
 Lemma soundness_axioms : forall A, PeanoAx A -> forall v, finterp v A.
 Proof.
-  intros.  induction H.
-  - induction v; simpl; auto.
-  -
+  intros.  induction H ;induction v; simpl; auto.
+  - induction n; simpl;auto.
+
 Admitted.
 
 
