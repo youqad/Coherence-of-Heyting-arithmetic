@@ -744,7 +744,12 @@ Lemma cinterp_1 : forall Γ v0 v1 v2,
 Proof.
   intros. induction Γ.
   - unfold cinterp. simpl. 
-    Admitted.
+Admitted.
+
+
+Lemma finterp_misc  : forall v t B,  finterp v (fsubst 0 t B) <->
+                                     (exists n, finterp (n::v) B).
+Admitted.
 
 Lemma finterp_misc_2 :  forall v A, 
   (exists n, (finterp (n :: v) (flift 1 A 0))) ->
@@ -786,14 +791,22 @@ Proof.
 Qed.
 
 
-Lemma finterp_misc  : forall v t B,  finterp v (fsubst 0 t B) <->
-                                     (exists n, finterp (n::v) B).
-Admitted.
+Lemma for_soundness_misc : forall Γ (A:formula) B, In A Γ -> In A (B::Γ).
+Proof.
+  intros. simpl. auto.
+Qed.
 
 Lemma soundness_misc : forall Γ A, In A (clift 1 Γ 0) -> 
                                         exists B, A = flift 1 B 0 /\ In B Γ.
 Proof.
-Admitted.
+  intros. induction Γ.
+  - simpl in H. contradiction.
+  - simpl in H. destruct H.
+    + exists a. split; try simpl; auto.
+             + assert (exists B : formula, A = flift 1 B 0 /\ In B Γ). auto.
+               destruct H0 as [B H0]. exists B. destruct H0.
+               split ; try apply for_soundness_misc; auto.
+Qed.
 
 Lemma soundness_rules : forall Γ A, Γ:-A ->
   forall v, cinterp v Γ -> finterp v A.
