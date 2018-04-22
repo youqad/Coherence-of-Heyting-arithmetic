@@ -764,15 +764,24 @@ Proof.
       apply finterp_misc_3. auto.
 Qed.                 
 
-                                       
-    
+Lemma jdcb : forall A n, finterp (n::nil) A <-> finterp nil (fsubst 0 (Tsucc (Tsucc ... Tsucc (Tzero))) A)
+
+
 Lemma soundness_axioms : forall A, PeanoAx A -> forall v, finterp v A.
 Proof.
   intros.  induction H; induction v; simpl; auto.
   - induction n; simpl;auto. intros. destruct H0.
 
-
+    assert (forall A, forall n,  finterp  nil A /\
+                                 finterp ( n :: nil)
+                                         (fsubst O (Tsucc #0)(flift 1 A 1))).
+    admit.
+    
+     apply H0.
+    
 Admitted.
+
+
 
 
 Theorem soundness : forall A, Thm A -> forall v, finterp v A.
