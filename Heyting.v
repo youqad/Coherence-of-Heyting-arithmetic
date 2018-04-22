@@ -528,13 +528,7 @@ Fixpoint tinterp (v:valuation) t :=
     | Tmult t t' => tinterp v t * tinterp v t'
   end.
 
-Lemma tlift_unit: forall t n, tlift 0 t n = t.
-Proof.
-  induction t; intros; 
-  repeat (simpl; auto; break);
-  simpl; try f_equal; 
-  try apply IHt; try apply IHt1; try apply IHt2.
-Qed.
+
 
 Lemma tinterp_1 : forall t v0 v1 v2,
   tinterp (v0++v1++v2) (tlift (length v1) t (length v0)) =
@@ -772,22 +766,34 @@ Fixpoint nTsucc n :=
   end.
 
 Lemma nTsucc_eq_n : forall A n, finterp (n::nil) A <->
-                         finterp nil (fsubst 0 (nTsucc n Tzero) A).
+                         finterp nil (fsubst 0 (nTsucc n Tzero) (flift 1 A 1)).
+Admitted.
+
+
+Lemma tlift_unit: forall t n, tlift 0 t n = t.
+Proof.
+  induction t; intros; 
+  repeat (simpl; auto; break);
+  simpl; try f_equal; 
+  try apply IHt; try apply IHt1; try apply IHt2.
+Qed.
+
+Lemma flift_unit : forall A n, flift 0 A n = A.
+Proof.
 Admitted.
 
 Lemma soundness_axioms : forall A, PeanoAx A -> forall v, finterp v A.
 Proof.
   intros.  induction H; induction v; simpl; auto.
   - induction n; simpl;auto.
-    + intros. apply nTsucc_eq_n. destruct H0.
-    induction n.
-      * simpl. intuition.      *
-    assert (forall A, forall n,  finterp  nil A /\
-                                 finterp ( n :: nil)
-                                         (fsubst O (Tsucc #0)(flift 1 A 1))).
-    admit.
-    destruct H0.
-    
+    + intros. apply nTsucc_eq_n. destruct H0. rewrite fsubst_1 with .
+      rewrite flift_unit
+      a
+      induction n.
+      * simpl. intuition.      
+
+        forall A n n' k k', k' <= k ->
+  flift n' (flift n A k) k' = flift n (flift n' A k') (n' + k).
 Admitted.
 
 
