@@ -764,7 +764,16 @@ Proof.
       apply finterp_misc_3. auto.
 Qed.                 
 
-Lemma jdcb : forall A n, finterp (n::nil) A <-> finterp nil (fsubst 0 (Tsucc (Tsucc ... Tsucc (Tzero))) A)
+
+(* n repeated forall *)
+Fixpoint nTsucc n :=
+  match n with
+    | 0 => (fun t => t)
+    | S m => (fun t => Tsucc (nTsucc m t))
+  end.
+
+Lemma nTsucc_eq_n : forall A n, finterp (n::nil) A <->
+                         finterp nil (fsubst 0 (nTsucc n Tzero) A).
 
 
 Lemma soundness_axioms : forall A, PeanoAx A -> forall v, finterp v A.
