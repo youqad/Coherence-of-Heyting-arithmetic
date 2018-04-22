@@ -642,10 +642,6 @@ Proof.
 Qed.
 
 
-Lemma for_soundness_misc : forall Γ (A:formula) B, In A Γ -> In A (B::Γ).
-Proof.
-  intros. simpl. auto.
-Qed.
 
 
 (*this lemma is useful for cinterp_1 and soundness_rules*)
@@ -657,7 +653,7 @@ Proof.
   - exists a. split; try simpl; auto.
            - assert (exists B : formula, A = flift m B n /\ In B Γ). auto.
              destruct H0 as [B H0]. exists B. destruct H0.
-             split ; try apply for_soundness_misc; auto.
+             split;try apply in_cons; auto.
 Qed.
 
 
