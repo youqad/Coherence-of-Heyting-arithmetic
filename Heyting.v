@@ -547,7 +547,6 @@ Proof.
   repeat rewrite app_nth1; auto.
 Qed.
 
-Set Printing All.
 
 Lemma tinterp_2 : forall t' t v1 v2,
   tinterp (v1 ++ v2) (tsubst (length v1) t' t) =
@@ -774,19 +773,20 @@ Fixpoint nTsucc n :=
 
 Lemma nTsucc_eq_n : forall A n, finterp (n::nil) A <->
                          finterp nil (fsubst 0 (nTsucc n Tzero) A).
-
+Admitted.
 
 Lemma soundness_axioms : forall A, PeanoAx A -> forall v, finterp v A.
 Proof.
   intros.  induction H; induction v; simpl; auto.
-  - induction n; simpl;auto. intros. destruct H0.
-
+  - induction n; simpl;auto.
+    + intros. apply nTsucc_eq_n. destruct H0.
+    induction n.
+      * simpl. intuition.      *
     assert (forall A, forall n,  finterp  nil A /\
                                  finterp ( n :: nil)
                                          (fsubst O (Tsucc #0)(flift 1 A 1))).
     admit.
-    
-     apply H0.
+    destruct H0.
     
 Admitted.
 
