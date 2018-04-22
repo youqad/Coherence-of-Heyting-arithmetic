@@ -675,10 +675,21 @@ Proof.
 Qed.
 
 
-Lemma finterp_misc  : forall v t B,  finterp v (fsubst 0 t B) <->
+Lemma finterp_misc_0  : forall v t B,  finterp v (fsubst 0 t B) ->
                                      (exists n, finterp (n::v) B).
-Admitted.
+Proof.
+  intros.  exists (tinterp v t). assert (finterp(nil ++ (tinterp v t) :: v) B).
+  apply finterp_2. simpl. auto. simpl in H0. auto.
+Qed.
 
+
+Lemma finterp_misc_1 : forall v t B ,  (forall n, finterp (n::v) B)
+                                       -> finterp v (fsubst 0 t B).
+Proof.                                     
+  intros.  assert (finterp(nil ++  v) (fsubst 0 t B));
+    try apply finterp_2; simpl; auto.
+Qed.
+               
 Lemma finterp_misc_2 :  forall v A, 
   (exists n, (finterp (n :: v) (flift 1 A 0))) ->
   finterp v A.
@@ -740,8 +751,8 @@ Proof.
   - simpl in IHrule1. auto.
   - simpl. intros. apply IHrule. apply cinterp_forall. auto.
   - intros. simpl in IHrule. simpl.
-    apply finterp_misc . exists 0. auto.
-  - intros. simpl. apply finterp_misc with t . auto.
+    apply finterp_misc_1 .  auto.
+  - intros. simpl. apply finterp_misc_0 with t . auto.
   - intros. unfold cinterp in IHrule2. simpl in *. apply finterp_misc_2.
     assert (exists n, finterp (n::v) B). auto.
     destruct H2. exists x.
@@ -758,7 +769,8 @@ Qed.
 Lemma soundness_axioms : forall A, PeanoAx A -> forall v, finterp v A.
 Proof.
   intros.  induction H; induction v; simpl; auto.
-  - induction n; simpl;auto.
+  - induction n; simpl;auto. intros. destruct H0.
+
 
 Admitted.
 
