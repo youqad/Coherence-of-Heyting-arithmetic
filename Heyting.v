@@ -201,12 +201,14 @@ Fixpoint flift n A k :=
     | Fforall B => Fforall (flift n B (S k))
   end.
 
+(* Add Lift *)
 Lemma flift_1 : forall A n n' k k', k <= k' -> k' <= k + n ->
   flift n' (flift n A k) k' = flift (n' + n) A k.
 Proof.
   induction A; intros; simpl; f_equal; auto.
 Qed.
 
+(* Commute Lift *)
 Lemma flift_2 : forall A n n' k k', k' <= k ->
   flift n' (flift n A k) k' = flift n (flift n' A k') (n' + k).
 Proof.
@@ -226,18 +228,21 @@ Fixpoint fsubst x t' A :=
     | Fforall B => Fforall (fsubst (S x) t' B)
   end.
 
+(* Subst too low *)
 Lemma fsubst_1 : forall A x t' n k, k <= x -> x <= k + n ->
   fsubst x t' (flift (S n) A k) = flift n A k.
 Proof.
   induction A; intros; simpl; f_equal; auto.
 Qed.
 
+(* Lift in Subst <-> Subst in Lift *)
 Lemma fsubst_2 : forall A x t' n k, k <= x ->
   flift n (fsubst x t' A) k = fsubst (n + x) t' (flift n A k).
 Proof.
   induction A; intros; simpl; f_equal; rewrite ?plus_n_Sm; auto.
 Qed.
 
+(* Commute "Double Lift" and Subst *)
 Lemma fsubst_3 : forall A x t' n k,
   flift n (fsubst x t' A) (x + k) =
   fsubst x (tlift n t' k) (flift n A (x + S k)).
@@ -246,6 +251,7 @@ Proof.
   apply (IHA (S x)).
 Qed.
 
+(* Add Subst *)
 Lemma fsubst_4 : forall A x t' y u',
   fsubst (x + y) u' (fsubst x t' A) =
   fsubst x (tsubst y u' t') (fsubst (x + S y) u' A).
@@ -288,7 +294,7 @@ Inductive subterm t: formula -> Prop :=
 
 Hint Constructors subterm.
 
-
+(* Monotonous cformula *)
 Lemma cformula_1 : forall n A, cformula n A ->
   forall n', n <= n' -> cformula n' A.
 Proof.
@@ -299,6 +305,7 @@ Proof.
   eauto.
 Qed.
 
+(* Lift above *)
 Lemma cformula_2 : forall n A, cformula n A -> forall k, flift k A n = A.
 Proof.
   intros; generalize dependent n; induction A;
@@ -306,6 +313,7 @@ Proof.
   try apply cterm_2; eauto.
 Qed.
 
+(* Subst above *)
 Lemma cformula_3 : forall n A, cformula n A ->
   forall t' j, n <= j -> fsubst j t' A = A.
 Proof.
@@ -318,6 +326,7 @@ Proof.
   eauto.
 Qed.
 
+(* Subst closed term *)
 Lemma cformula_4 : forall n A, cformula (S n) A ->
   forall t', cterm 0 t' -> cformula n (fsubst n t' A).
 Proof.
@@ -631,7 +640,7 @@ Definition cinterp v Γ := forall A, In A Γ -> finterp v A.
 Lemma f_to_c : forall v A Γ , finterp v A ->  cinterp v Γ -> cinterp v (A :: Γ).
 Proof.
   intros. unfold cinterp in *. intros.
-  simpl in H1. destruct H1; try rewrite <- H1; auto .
+  simpl in H1. destruct H1; try rewrite <- H1; auto.
 Qed.
 
 
@@ -694,7 +703,6 @@ Proof.
             finterp ((nil : list nat) ++ v) A).
   - apply finterp_1.
   - simpl in H0. apply H0. auto.
-   
 Qed.
 
 
@@ -758,18 +766,74 @@ Proof.
 Qed.                 
 
 
-(* n repeated forall *)
+(* n-times repeated Tsucc *)
 Fixpoint nTsucc n :=
   match n with
     | 0 => (fun t => t)
     | S m => (fun t => Tsucc (nTsucc m t))
   end.
 
-Lemma nTsucc_eq_n : forall A n, finterp (n::nil) A <->
-                         finterp nil (fsubst 0 (nTsucc n Tzero) (flift 1 A 1)).
-Admitted.
 
+Lemma tinterp_nTsucc : forall n v, tinterp v (nTsucc n Tzero) = n.
+Proof.
+  induction n; simpl; auto; try apply f_equal.
+Qed.
 
+Lemma nTsucc_eq_n : forall A n v, finterp (n::v) A <->
+  finterp v (fsubst 0 (nTsucc n Tzero) A).
+Proof.
+  intros; destruct n; split; intro; simpl;
+  try apply finterp_2 with (v1 := nil); 
+  try apply finterp_2 with (v1 := nil) in H; auto; simpl.
+  rewrite <- (@tinterp_nTsucc n v) in H; auto.
+  rewrite (@tinterp_nTsucc (S n) v) in H; simpl; auto.
+Qed.
+
+Lemma destruct_list_end : forall n (v1: list nat), length v1 = S n 
+  -> exists n0 v0, length v0 = n /\ v1 = v0 ++ n0::nil.
+Proof.
+  intros.
+  assert (v1 <> nil).
+  intuition; rewrite <- length_zero_iff_nil in H0; auto.
+  apply (@exists_last nat v1) in H0; destruct H0; destruct s.
+  exists x0; exists x; split; auto.
+  assert (S n = length x + 1).
+  rewrite <- H; rewrite e; apply app_length.
+  auto.
+Qed.
+
+Lemma finterp_nFforall : forall A n v2, finterp v2 (nFforall n A)
+  <-> forall v1, length v1 = n -> finterp (v1 ++ v2) A.
+Proof.
+  induction n; split; intros; simpl; simpl in H.
+  - apply length_zero_iff_nil in H0; try now rewrite H0.
+  - now apply H with (v1 := nil).
+  - apply (destruct_list_end n v1) in H0.
+    destruct H0; destruct H0; destruct H0.
+    rewrite H1; rewrite <- app_assoc.
+    apply IHn with (v2 := (x :: nil) ++ v2); auto;
+    simpl; apply H.
+  - intro. apply IHn; intros.
+    assert (v1 ++ n0 :: v2 = (v1 ++ (n0 :: nil)) ++ v2).
+    rewrite <- app_assoc; now simpl.
+    rewrite H1; apply H; rewrite app_length; simpl; auto.
+Qed.
+
+Lemma nTsucc_at_n0 : forall A n n0 v, finterp (n0::v) (nFforall n A) 
+  <-> finterp v (nFforall n (fsubst n (nTsucc n0 Tzero) A)).
+Proof.
+  split; intro;
+  try rewrite -> (finterp_nFforall A n (n0::v)) in H;
+  try rewrite -> (finterp_nFforall (fsubst n (nTsucc n0 Tzero) A) n v);
+  try rewrite -> (finterp_nFforall A n (n0::v));
+  try rewrite -> (finterp_nFforall (fsubst n (nTsucc n0 Tzero) A) n v) in H;  
+  intros; assert (finterp_subst := (finterp_2 (nTsucc n0 Tzero) A v1 v));
+  rewrite H0 in finterp_subst; rewrite tinterp_nTsucc in finterp_subst;
+  try (rewrite finterp_subst; now apply H).
+  try (rewrite <- finterp_subst; now apply H).
+Qed.
+
+(*
 Lemma tlift_unit: forall t n, tlift 0 t n = t.
 Proof.
   induction t; intros; 
@@ -777,24 +841,51 @@ Proof.
   simpl; try f_equal; 
   try apply IHt; try apply IHt1; try apply IHt2.
 Qed.
+*)
 
-Lemma flift_unit : forall A n, flift 0 A n = A.
-Proof.
-Admitted.
+Notation flift_add := flift_1.
+Notation flift_commute := flift_2.
+Notation subst_below := fsubst_1.
+Notation flift_fsubst_commute := fsubst_2.
+Notation dble_flift_fsubst_commute := fsubst_3.
+Notation fsubst_add := fsubst_4.
+Notation cformula_monotonous := cformula_1.
+Notation lift_above := cformula_2.
+Notation subst_above := cformula_3.
+Notation subst_closed_term := cformula_4.
+Notation finterp_lift := finterp_1.
+Notation finterp_subst := finterp_2.
 
 Lemma soundness_axioms : forall A, PeanoAx A -> forall v, finterp v A.
 Proof.
-  intros.  induction H; induction v; simpl; auto.
-  - induction n; simpl;auto.
-    + intros. apply nTsucc_eq_n. destruct H0. rewrite fsubst_1 with .
-      rewrite flift_unit
-      a
-      induction n.
-      * simpl. intuition.      
-
-        forall A n n' k k', k' <= k ->
-  flift n' (flift n A k) k' = flift n (flift n' A k') (n' + k).
-Admitted.
+  intros; induction H; simpl; auto.
+  generalize dependent A; induction n.
+  - simpl; intros; inversion H0.
+    assert (forall n : nat,
+    finterp (n :: v) A ->
+    finterp ((S n) :: v) A).
+    + intros; apply H2 in H3.
+      apply finterp_subst with (v1 := nil) in H3.
+      simpl in H3; apply finterp_lift with (v0 := S n0 :: nil) (v1 := n0 :: nil) (v2 := v) in H3.
+      simpl in H3. auto.
+    + apply nat_ind with (n:= n) in H3; auto.
+      apply finterp_subst with (v1 := nil) in H1; now simpl in H1.
+  - intros; simpl; intro.
+    assert (cformula (S n) (fsubst (S n) (nTsucc n0 Tzero) A)).
+    + apply subst_closed_term with (n := S n); auto.
+      induction n0; auto; simpl; now constructor.
+    + apply IHn in H0; rewrite nTsucc_at_n0; simpl.
+      assert (fsub_add := fsubst_add A 0 Tzero n (nTsucc n0 Tzero)).
+      simpl in fsub_add.
+      rewrite <- fsub_add in H0.
+      assert (fsub_lift := flift_fsubst_commute A (S n) (nTsucc n0 Tzero) 1 1).
+      simpl in fsub_lift.
+      rewrite fsub_lift in H0.
+      assert (fsub_sub := fsubst_add (flift 1 A 1) 0 (Tsucc # 0) (S n) (nTsucc n0 Tzero)).
+      simpl in fsub_sub.
+      rewrite <- fsub_sub in H0.
+      auto; destruct n. auto.
+Qed.
 
 
 
@@ -803,7 +894,7 @@ Theorem soundness : forall A, Thm A -> forall v, finterp v A.
 Proof.
   intro; intro. repeat (destruct H). intro. apply soundness_rules with x. auto.
   unfold cinterp. intros. apply soundness_axioms. auto.
- Qed.
+Qed.
     
 Theorem coherence : ~Thm Ffalse.
 Proof.
